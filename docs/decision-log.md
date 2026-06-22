@@ -1,8 +1,8 @@
 # Decision Log — Semantic-Visual Bridge
 
-**Purpose.** Tracks what has been decided, what alternatives were considered, why, and what each decision
-blocks or depends on. Read before each session to avoid re-litigating closed questions. Update at the
-end of every session.
+**Purpose.** Permanent record of closed architectural decisions. Each entry records what was
+decided, why, what it depends on, and what it blocks. Entries are never deleted; superseded
+decisions are marked and cross-referenced to their replacement.
 
 **Statuses.**
 - `Closed` — committed; requires strong architectural reason to reopen.
@@ -13,43 +13,42 @@ end of every session.
 
 ## D-001 — Central Architectural Commitment
 
-**Status:** Closed  
-**Source:** Preamble  
-**Decided:** The LLM expresses semantic intent; a deterministic system resolves intent into geometry.
-Neither side does the other's job. The two sides communicate through a structured, diff-friendly working
-document and an LLM-readable audit report.  
-**Rationale:** LLMs are unreliable at geometric reasoning. Existing tools (Mermaid, Graphviz, TikZ)
-require the LLM to write at the constrained-layout level (Level 3) while it reasons at the relational
-level (Level 1). The gap produces unreliable, lossy output that is difficult to refine.  
-**Alternatives considered:** Not stated; treated as the foundational commitment from which all other
-decisions derive.  
-**Depends on:** Nothing.  
-**Blocks:** Everything. All subsequent decisions must be consistent with this split.
+**Status:** Closed
+**Source:** Preamble
+**Decided:** The LLM expresses semantic intent; a deterministic system resolves intent into
+geometry. Neither side does the other's job. The two sides communicate through a structured,
+diff-friendly working document and an LLM-readable audit report.
+**Rationale:** LLMs are unreliable at geometric reasoning. Existing tools (Mermaid, Graphviz,
+TikZ) require the LLM to write at the constrained-layout level (Level 3) while it reasons at
+the relational level (Level 1). The gap produces unreliable, lossy output that is difficult to
+refine.
+**Depends on:** Nothing.
+**Blocks:** Everything.
 
 ---
 
 ## D-002 — Four-Level Hierarchy of Visual Meaning
 
-**Status:** Closed  
-**Source:** Preamble  
+**Status:** Closed
+**Source:** Preamble
 **Decided:** Visual meaning is stratified into four levels:
 1. Relational structure — entities and labeled relations; no geometry.
 2. Spatial metaphor — a layout genre is selected.
 3. Constrained layout — geometric constraints a solver can satisfy.
 4. Rendered output — actual pixels.
 
-The LLM operates at Levels 1–2; the deterministic pipeline handles 3–4.  
-**Rationale:** Provides a precise vocabulary for locating where existing tools operate and diagnosing
-why they fail when driven by LLM output.  
-**Depends on:** D-001.  
-**Blocks:** D-003 (block decomposition), genre taxonomy work.
+The LLM operates at Levels 1–2; the deterministic pipeline handles 3–4.
+**Rationale:** Provides a precise vocabulary for locating where existing tools operate and
+diagnosing why they fail when driven by LLM output.
+**Depends on:** D-001.
+**Blocks:** D-003, genre taxonomy work.
 
 ---
 
 ## D-003 — Six-Block Pipeline Architecture
 
-**Status:** Closed  
-**Source:** Architecture Overview  
+**Status:** Closed
+**Source:** Architecture Overview
 **Decided:** Six functional blocks in pipeline order:
 1. Intent Capture
 2. Spec Manager
@@ -59,601 +58,489 @@ why they fail when driven by LLM output.
 6. Audit & Report
 
 Two auxiliaries not on the main pipeline: Variation Generator, Content Measurement Service.
-A working spec flows downward; a decision log flows upward; the LLM negotiates through both.  
-**Rationale:** Clean separation of concerns matching the levels in D-002. Each block has a single
-well-defined responsibility.  
-**Depends on:** D-001, D-002.  
-**Blocks:** All block-specific decisions; interface specifications (Q-001).
+A working spec flows downward; a decision log flows upward; the LLM negotiates through both.
+**Rationale:** Clean separation of concerns matching the levels in D-002.
+**Depends on:** D-001, D-002.
+**Blocks:** All block-specific decisions; Q-001.
 
 ---
 
 ## D-004 — Spec as Source of Truth
 
-**Status:** Closed  
-**Source:** Cross-Cutting Principles  
-**Decided:** The working spec — not conversation history, not rendered output — is the canonical state.
-Every block reads from the spec or from upstream output derived from it.  
-**Rationale:** Enables reproducibility, diff-and-refine workflow, and LLM-readable audit without
-depending on stateful conversation context.  
-**Depends on:** D-003.  
-**Blocks:** Spec representation (Q-003), diff vocabulary (Q-002), negotiation protocol (Q-004).
+**Status:** Closed
+**Source:** Cross-Cutting Principles
+**Decided:** The working spec — not conversation history, not rendered output — is the
+canonical state. Every block reads from the spec or from upstream output derived from it.
+**Rationale:** Enables reproducibility, diff-and-refine workflow, and LLM-readable audit
+without depending on stateful conversation context.
+**Depends on:** D-003.
+**Blocks:** Q-003, Q-002, Q-004.
 
 ---
 
 ## D-005 — No Silent Inference
 
-**Status:** Closed  
-**Source:** Cross-Cutting Principles  
-**Decided:** When ambiguity arises, blocks surface it explicitly rather than picking an interpretation
-invisibly. Ambiguity is information, not a problem to hide.  
-**Rationale:** Silent inference produces outputs that look correct but aren't. Errors surface late,
-are hard to diagnose, and erode trust in the system.  
-**Depends on:** D-001.  
-**Blocks:** Negotiation protocol (Q-004); Intent Capture behavior; audit report format (Q-006).
-**Note:** Creates tension with usability — not every ambiguity warrants a clarification round.
-Resolution deferred to Q-004 and Q-014.
+**Status:** Closed
+**Source:** Cross-Cutting Principles
+**Decided:** When ambiguity arises, blocks surface it explicitly rather than picking an
+interpretation invisibly. Ambiguity is information, not a problem to hide.
+**Rationale:** Silent inference produces outputs that look correct but aren't.
+**Depends on:** D-001.
+**Blocks:** Q-004, Intent Capture behavior, Q-006.
 
 ---
 
 ## D-006 — Failure Modes are First-Class Outputs
 
-**Status:** Closed  
-**Source:** Cross-Cutting Principles  
-**Decided:** A system that produces a bad visual silently is worse than one that produces no visual
-and a clear diagnosis. The pipeline can halt and request clarification at any block.  
-**Rationale:** Silent failures compound. Explicit failures are actionable. Reporting a failure with
-a precise diagnosis is more useful than a degraded output.  
-**Depends on:** D-005.  
-**Blocks:** Audit report format (Q-006); per-block error handling; finding emission API (Q-013).
+**Status:** Closed
+**Source:** Cross-Cutting Principles
+**Decided:** The pipeline can halt and request clarification at any block. A system that
+produces a bad visual silently is worse than one that produces no visual and a clear diagnosis.
+**Rationale:** Silent failures compound. Explicit failures are actionable.
+**Depends on:** D-005.
+**Blocks:** Q-006, Q-013.
 
 ---
 
 ## D-007 — Genre Organized by Cognitive Function, Not Form
 
-**Status:** Closed  
-**Source:** Block 3: Genre Resolver  
-**Decided:** Genre taxonomy is organized by what cognitive work a visual does, not what it looks like.
-Two visuals can look similar but be different genres because they do different cognitive work.  
-**Rationale:** LLMs reason about purposes more reliably than about geometric appearances. Function-based
-organization makes the vocabulary more reliable as an LLM input.  
-**Depends on:** D-001, D-002.  
-**Blocks:** Genre taxonomy finalization (Q-005); genre resolution algorithm.
+**Status:** Closed
+**Source:** Block 3: Genre Resolver
+**Decided:** Genre taxonomy is organized by what cognitive work a visual does, not what it
+looks like. Two visuals can look similar but be different genres because they do different
+cognitive work.
+**Rationale:** LLMs reason about purposes more reliably than geometric appearances.
+**Depends on:** D-001, D-002.
+**Blocks:** Q-005, genre resolution algorithm.
 
 ---
 
-## D-008 — Working Genre Taxonomy (17 genres, revisable)
+## D-008 — Genre Resolver as Active Interrogator
 
-**Status:** Revisable  
-**Source:** Block 3: Genre Resolver  
-**Decided:** 17 genres organized under five cognitive-function headings:
-- *Showing structure:* hierarchy, set-relation, composition
-- *Showing process:* flow, state-machine, timeline, transformation
-- *Showing relation:* causal-graph, network, comparison-matrix
-- *Showing quantity:* function-plot, distribution, categorical-chart
-- *Showing geometry:* geometric-construction, schematic, annotated-image
-
-Acknowledged in the design doc as a working set requiring refinement.  
-**Rationale:** Derived from common explanatory/analytical visual types. 17 is a working number,
-not a principled count. The five-heading structure follows from D-007.  
-**Depends on:** D-007.  
-**Blocks:** Layout algorithm selection per genre (Q-008); audit check specification per genre (Q-009);
-genre taxonomy finalization (Q-005).  
-**Known gap:** Genre overlap not addressed. E.g., causal-graph spans "showing structure" and
-"showing relation"; timeline spans "showing process" and "showing quantity." Resolution approach
-is open.
+**Status:** Closed
+**Source:** Block 3: Genre Resolver
+**Decided:** The Genre Resolver does not passively accept a genre label. It probes feasibility,
+checks for genre–content mismatches, and surfaces issues before committing. It may suggest
+alternatives.
+**Rationale:** Passive acceptance allows mismatches to propagate silently to the Layout Engine.
+**Depends on:** D-005, D-006, D-007.
+**Blocks:** Q-004, Q-012.
 
 ---
 
-## D-009 — Small Multiples as Modifier, Not Genre
+## D-009 — Layout Engine Reads Policy, Not Spec Directly
 
-**Status:** Closed  
-**Source:** Block 3: Genre Resolver  
-**Decided:** Small multiples is a compositional modifier applicable to several genres, not its own genre.
-A small-multiple-of-function-plots and a small-multiple-of-state-machines share the repetition structure
-but have different layout and encoding conventions. The genre is the repeated unit; the repetition
-pattern is the modifier.  
-**Rationale:** Treating small multiples as a genre would require duplicating layout/encoding logic
-across every combination. Modifier treatment is compositionally cleaner.  
-**Depends on:** D-008.  
-**Blocks:** Spec representation of small multiples (Q-007); coordinated scale/encoding enforcement
-across instances.
+**Status:** Closed
+**Source:** Block 4: Layout Engine
+**Decided:** The Layout Engine receives a policy object derived from the genre commitment, not
+direct access to the full spec. The policy object contains algorithm binding, parameter
+constraints, and encoding conventions.
+**Rationale:** Decouples the Layout Engine from spec representation details. Provides a clean
+interface boundary.
+**Depends on:** D-003.
+**Blocks:** Q-008.
 
 ---
 
-## D-010 — v1 Composition Model: Primary with Insets
+## D-010 — Confections Deferred to v2
 
-**Status:** Closed  
-**Source:** Block 3: Genre Resolver  
-**Decided:** v1 supports one primary genre with other genres appearing as embedded sub-visuals (insets).
-Full confections — genuine multi-genre composition where no single genre dominates — are deferred to
-v2+.  
-**Rationale:** Confections require a richer compositional model the v1 architecture cannot adequately
-support. The primary-with-insets model covers most practical explanatory visuals while remaining
-implementable.  
-**Depends on:** D-008.  
-**Blocks:** Nothing in v1. Deferred list item for v2.  
-**Note:** This is an acknowledged limitation. Confections are where v1 will be most visibly
-inadequate relative to a skilled human illustrator.
+**Status:** Closed
+**Source:** Architecture discussion
+**Decided:** Genuine multi-genre compositions where no single genre dominates are out of scope
+for v1. v1 supports a primary genre with insets.
+**Rationale:** The spec representation for confections requires solving cross-genre identity
+and shared-frame semantics simultaneously. Too high cost for v1.
+**Depends on:** D-007.
+**Blocks:** Nothing directly; affects v2 scope.
 
 ---
 
-## D-011 — Closed Genre Vocabulary in v1
+## D-011 — Closed Genre Vocabulary for v1
 
-**Status:** Closed  
-**Source:** Block 3: Genre Resolver  
-**Decided:** v1 has a closed genre vocabulary. Unclassified or low-confidence requests are tracked
-as a corpus to inform later vocabulary additions. Unrecognized genre names are mapped to the nearest
-known genre with the mapping reported, or classification refuses and requests clarification.  
-**Rationale:** An extensibility mechanism adds complexity. Better to close the vocabulary for v1
-and learn what's missing from real usage.  
-**Depends on:** D-008.  
-**Blocks:** v2 extensibility mechanism (deferred).
-
----
-
-## D-012 — Layout Engine: Modular per Genre, Not Universal Solver
-
-**Status:** Closed  
-**Source:** Block 4: Layout Engine  
-**Decided:** Each genre has dedicated layout machinery. No attempt at a universal layout solver.
-Genre-to-algorithm binding lives in the Genre Resolver's policy output and is replaceable.  
-**Cited candidates:** Sugiyama for layered flows; Reingold-Tilford for trees; force-directed for
-networks. Others unspecified.  
-**Rationale:** A universal solver would need to accommodate radically different layout semantics
-across genres. Dedicated algorithms produce better results and are more maintainable.  
-**Depends on:** D-008, D-003.  
-**Blocks:** Layout algorithm selection per genre (Q-008).
+**Status:** Closed
+**Source:** Architecture discussion
+**Decided:** The genre vocabulary is closed for v1. No extensibility mechanism in v1.
+**Rationale:** An open vocabulary requires a plugin/registry architecture that is out of scope
+for v1. The closed vocabulary can be designed to be correct; an open one requires correctness
+of the extension mechanism.
+**Depends on:** D-007.
+**Blocks:** Q-005.
 
 ---
 
-## D-013 — Layout Stability Principle
+## D-012 — Unit-Invariant Layout
 
-**Status:** Closed (principle); open (mechanism)  
-**Source:** Block 4: Layout Engine  
-**Decided:** After a spec diff, the Layout Engine produces a layout that minimizes disruption to
-the prior layout while still respecting all current constraints. The engine remembers the prior
-solution as an input to the next solution.  
-**Rationale:** Global layout algorithms can produce wildly different layouts from small spec changes,
-breaking the diff-and-refine model and disorienting users.  
-**Depends on:** D-012.  
-**Blocks:** Layout stability mechanism (Q-009).  
-**Note:** The mental-map preservation problem has no satisfying general solution. Tractable for
-constrained-layout genres (geometric construction, schematic); hard for force-directed and
-hierarchical layouts. The mechanism will likely be per-algorithm rather than universal.
+**Status:** Closed
+**Source:** Principles Worth Harvesting
+**Decided:** The Layout Engine produces unit-invariant geometry. Concrete units are resolved
+at render time against the Render Context.
+**Rationale:** Decouples layout computation from output format. A layout computed in abstract
+units renders correctly at any scale or resolution.
+**Depends on:** D-009.
+**Blocks:** Q-008, Q-009.
 
 ---
 
-## D-014 — Content Measurement Service as Cycle-Breaker
+## D-013 — Math as First-Class Content
 
-**Status:** Closed  
-**Source:** Block 4: Layout Engine; Auxiliary  
-**Decided:** A shared Content Measurement Service (not on the main pipeline) is consulted by
-both Layout Engine and Renderer to size labels and math expressions. This breaks the
-layout→typesetting→layout dependency cycle.  
-**Rationale:** Layout needs label sizes; label sizes (especially math) require typesetting;
-typesetting lives in the Renderer. Extracting measurement as a shared service breaks the cycle
-without violating block responsibilities.  
-**Depends on:** D-003, D-017.  
-**Blocks:** Content Measurement Service interface (Q-010).  
-**Note:** For complex math expressions, iterative measure cycles may still be required internally.
-The service interface must support this without exposing the iteration to callers.
+**Status:** Closed
+**Source:** Principles Worth Harvesting
+**Decided:** Mathematical content (equations, expressions, symbolic structures) is a first-class
+content type in the spec. It is not reduced to images or strings.
+**Rationale:** Math is a primary use case. Reducing it to images loses semantics and prevents
+accessibility rendering.
+**Depends on:** D-001.
+**Blocks:** Q-003 (spec must have a math content type), Q-010.
 
 ---
 
-## D-015 — Audit Report: Three-Tier Finding Classification
+## D-014 — Style / Structure Separation
 
-**Status:** Closed  
-**Source:** Block 6: Audit & Report  
-**Decided:**
-- Tier 1: Findings that affect meaning. LLM reads always.
-- Tier 2: Decisions that could reasonably be revised. LLM reads during negotiation.
-- Tier 3: Routine processing record. LLM reads only for deeper investigation.
-
-Each block tags findings with a tier; the Audit block may re-tier based on cross-cutting concerns.  
-**Rationale:** Manages LLM attention. The LLM shouldn't process a dense log to find what matters.
-Three tiers match the three reasons to consult the report: "did something go wrong?", "should I
-refine this?", "what exactly happened?"  
-**Depends on:** D-003, D-006.  
-**Blocks:** Audit report format (Q-006); finding emission API (Q-013).
+**Status:** Closed
+**Source:** Principles Worth Harvesting
+**Decided:** Visual structure (what entities exist, how they relate, what layout genre applies)
+is strictly separated from style (colors, fonts, decorative choices). The spec contains
+structure; style is applied at render time.
+**Rationale:** Structure carries meaning; style is presentation. Conflating them prevents
+semantic reasoning about the visual.
+**Depends on:** D-001.
+**Blocks:** Slot 3/4 boundary (Q-003); D-027.
 
 ---
 
-## D-016 — Required Spec Properties (Eight)
+## D-015 — Three-Tier Finding Classification
 
-**Status:** Closed  
-**Source:** Block 2: Spec Manager  
-**Decided:** The spec must exhibit:
-1. *Diffability* — semantic diff, not text diff.
-2. *Addressability* — stable identifiers for every spec element, across revisions.
-3. *Locality of change* — changes to one part do not require restating unrelated parts.
-4. *Self-description* — carries enough metadata to be understandable on its own.
-5. *Auditability* — current state reconstructible from revision history.
-6. *Renderability gradient* — distinguishes at least: syntactically valid, semantically complete,
-   finalized.
-7. *Functional role typing* — spec elements carry functional roles: primary content, reference
-   structure, annotation, grouping. Not a one-dimensional emphasis scale.
-8. *Optional rhetorical purpose* — spec can record an explicit claim when one is present,
-   distinguishing descriptive from suasive visuals.
-
-**Rationale:** Each property derived from a specific architectural requirement. Functional role
-typing from Tufte's layering analysis. Rhetorical purpose from Tufte's treatment of visuals as
-arguments.  
-**Depends on:** D-004, D-005.  
-**Blocks:** Spec representation (Q-003) must satisfy all eight; diff vocabulary (Q-002) must
-support diffability and addressability.
+**Status:** Closed
+**Source:** Audit & Report block
+**Decided:** Audit findings are classified in three tiers:
+- Tier 1: Blocking — pipeline cannot proceed without resolution.
+- Tier 2: Significant — pipeline proceeds with a proposed resolution; LLM/human confirmation
+  required before commit.
+- Tier 3: Advisory — pipeline proceeds; finding logged; no confirmation required.
+**Rationale:** Flat finding lists conflate urgency. Tiered classification makes pipeline
+behavior predictable and auditable.
+**Depends on:** D-006.
+**Blocks:** Q-006, Q-013, Autonomy Charter (D-030).
 
 ---
 
-## D-017 — Math Content as First-Class
+## D-016 — Eight Spec Properties (Addressability, etc.)
 
-**Status:** Closed  
-**Source:** Block 5: Renderer; Principles Worth Harvesting  
-**Decided:** Math expressions are structured labeled nodes (MathML or LaTeX-bearing), not strings
-or images.  
-**Rationale:** Strings lose structure needed for layout and accessibility. Images lose accessibility,
-localization, and the ability to participate in layout measurement.  
-**Depends on:** D-016 (self-description property implies structured content).  
-**Blocks:** Content Measurement Service interface (Q-010); spec schema for labeled content.
-
----
-
-## D-018 — Theme Separated from Structure
-
-**Status:** Closed  
-**Source:** Block 5: Renderer; Principles Worth Harvesting  
-**Decided:** Same resolved layout can be rendered at different targets and in different visual styles
-without re-layout. The LLM never touches the theme layer.  
-**Rationale:** Prevents style changes from triggering re-layout. Allows rendering for multiple
-targets (SVG, accessibility text, print) from a single resolved spec.  
-**Depends on:** D-003.  
-**Blocks:** Renderer architecture; theme specification format.
+**Status:** Closed
+**Source:** Design doc
+**Decided:** The spec must exhibit eight properties: addressability, semantic typing,
+composability, diff-friendliness, LLM-readability, human-readability, round-trip fidelity,
+and stable identity across versions.
+**Rationale:** These properties constrain the representation choice and are collectively
+necessary for the system to function correctly.
+**Depends on:** D-004.
+**Blocks:** Q-003.
 
 ---
 
-## D-019 — Unit Invariance
+## D-017 — Negotiation Loop Architecture
 
-**Status:** Closed  
-**Source:** Cross-Cutting Principles; Principles Worth Harvesting  
-**Decided:** Internal representations are unit-invariant. Concrete units (pixels, points, em)
-applied only at presentation time.  
-**Rationale:** Decouples layout from output medium. Allows re-rendering at different sizes, on
-different devices, without re-layout.  
-**Depends on:** D-018.  
-**Blocks:** Layout Engine output representation; Content Measurement Service interface.
-
----
-
-## D-020 — Scope Boundary
-
-**Status:** Closed  
-**Source:** Scope section  
-**Decided:**
-- *In scope:* static, single-visual, explanatory and analytical graphics with high-determinacy
-  meaning. Every element has specifiable meaning. Interactive negotiation over the spec is supported;
-  the output is static.
-- *Definitively out of scope:* generative imagery, aesthetic/expressive visuals, full page/document
-  design, photorealistic/mimetic representation, UI/interaction design, cartographic maps.
-- *Deferred (adjacent, plausible extension, not categorically excluded):* animation, interactivity,
-  pedagogical sequences, real-time/streaming data.
-
-**Rationale:** Scope derived from the central commitment (D-001). Each exclusion corresponds to a
-place where the semantics-to-geometry architecture would fail. Naming the scope by derivation rather
-than declaration makes the exclusions principled and the extension criteria clear.  
-**Depends on:** D-001.  
-**Blocks:** Nothing — scope decisions close off design space.
+**Status:** Closed
+**Source:** Design doc
+**Decided:** The LLM does not receive the full pipeline output directly. It receives the
+Audit Report (a curated, LLM-readable summary) and proposes DIFFs against the spec.
+This is the negotiation loop.
+**Rationale:** Giving the LLM full pipeline output would include low-level geometry and
+render artifacts that are not useful for semantic reasoning.
+**Depends on:** D-004, D-006.
+**Blocks:** Q-004.
 
 ---
 
-## D-021 — Human Involvement Gradient
+## D-018 — Variation Generator as Auxiliary
 
-**Status:** Closed  
-**Source:** Human Involvement Modes  
-**Decided:** Three modes supported simultaneously via the same working spec:
-1. Watching the LLM negotiate (passive, possibly with veto).
-2. Selecting among variations via Variation Generator.
-3. Editing the spec directly.
-
-This is a structural property of the architecture (single working spec as source of truth), not a
-separate feature.  
-**Depends on:** D-004, D-003.  
-**Blocks:** Spec editing interface; Variation Generator spec.
+**Status:** Closed
+**Source:** Design doc
+**Decided:** The Variation Generator is not on the main pipeline. It taps the pipeline at
+defined points to produce alternatives. It does not modify the working spec.
+**Rationale:** Variations are explorations, not commits. Keeping the VG off the main pipeline
+prevents accidental spec mutation.
+**Depends on:** D-003.
+**Blocks:** VG tap point decisions (D-034).
 
 ---
 
-## D-022 — Accessibility as Semantic Completeness Test
+## D-019 — Render Context as Named Profiles
 
-**Status:** Closed  
-**Source:** Accessibility as Semantic Completeness Test  
-**Decided:** If the spec doesn't carry enough information to generate a meaningful accessibility
-description, it doesn't carry enough information. For suasive visuals (per D-016), accessibility
-text must articulate the claim, not just describe the structure. Failure to articulate a recorded
-claim in a suasive visual is a Tier 1 audit finding.  
-**Test:** Generate accessibility text from the spec; show it to a different LLM or human who
-hasn't seen the visual; compare their predicted visual to the actual visual. Match = spec is
-semantically adequate; divergence = information is embedded in layout/rendering decisions that
-should have been in the spec.  
-**Depends on:** D-016, D-015.  
-**Blocks:** Accessibility Renderer specification.
+**Status:** Closed
+**Source:** Design doc
+**Decided:** Output targets are named profiles (e.g., "screen-HD", "print-A4", "low-vision")
+rather than ad-hoc parameter sets. The spec carries the set of target profiles; the Renderer
+resolves each.
+**Rationale:** Named profiles are composable, reusable, and auditable. Ad-hoc parameters
+are neither.
+**Depends on:** D-012.
+**Blocks:** Slot 5 definition; Q-010.
 
 ---
 
-## D-023 — Variation Generator: Structured Variations, Not Random
+## D-020 — Out-of-Scope for v1
 
-**Status:** Closed (principle); open (specification)  
-**Source:** Auxiliary: Variation Generator  
-**Decided:** Variations are diffs over the spec drawn from a defined vocabulary of axes (layout,
-encoding, genre, structural). Breadth is controllable by parameter. Each variation produces its
-own rendering plus a structured account of how it differs from the center spec. Selection commits
-a variation's diff cleanly — no partial selection or mixing.  
-**Rationale:** Solves aesthetic and "I'll know it when I see it" judgment calls that verbal
-negotiation cannot handle. Keeps the LLM in linguistic territory by providing structured difference
-descriptions, not just pixel comparisons.  
-**Precedent:** Kai Krause Power Tools (mid-1990s) for breadth-controlled variant exploration.
-Interactive evolutionary computation in HCI for the selection-as-convergence model.  
-**Depends on:** D-004 (variations are spec diffs), D-003.  
-**Blocks:** Variation axis vocabulary (Q-011); breadth control parameter specification.
+**Status:** Closed
+**Source:** Design doc
+**Decided:** Explicitly out of scope for v1: animation, interactivity, pedagogical sequences,
+real-time/streaming data, cartographic maps, genre vocabulary extensibility.
+**Rationale:** Each of these requires spec-level features that would significantly complicate
+the core model. They are deferred, not rejected.
+**Depends on:** D-001.
+**Blocks:** Nothing; constrains scope.
 
 ---
 
-## D-024 — Genre is a Hypothesis, Not a Fact
+## D-021 — Accessibility as Parallel Output, Not Afterthought
 
-**Status:** Closed  
-**Source:** Block 3: Genre Resolver  
-**Decided:** Genre classification is revisable by LLM, human, or downstream evidence at any point.
-Confidence is reportable. High and low confidence are distinguishable downstream. Low confidence
-may trigger clarification. Genre commitment is recorded in the spec; downstream blocks read it
-from the spec.  
-**Rationale:** Genre drives the entire downstream pipeline. Committing to a wrong genre silently
-is worse than surfacing uncertainty.  
-**Depends on:** D-007, D-005.  
-**Blocks:** Negotiation protocol (Q-004) — specifically how genre revision is handled; diff
-vocabulary (Q-002) — specifically the frame-shifting vs. local change distinction (Q-012).
+**Status:** Closed
+**Source:** Design doc
+**Decided:** Accessibility rendering (alt text, structured description, screen-reader markup)
+is a parallel output produced by the Accessibility Renderer, not post-processing of the visual
+output. It reads from the same spec.
+**Rationale:** Post-processing accessibility is lossy. Reading from the spec allows accurate
+semantic description.
+**Depends on:** D-004.
+**Blocks:** Accessibility renderer interface.
+
+---
+
+## D-022 — Content Measurement as Shared Utility
+
+**Status:** Closed
+**Source:** Design doc
+**Decided:** Content measurement (text metrics, math bounding boxes, image dimensions) is a
+shared utility service, not a per-block responsibility. Any block that needs measurements calls
+the Content Measurement Service.
+**Rationale:** Measurement logic is complex, render-context-dependent, and should not be
+duplicated across blocks.
+**Depends on:** D-003.
+**Blocks:** Q-010.
+
+---
+
+## D-023 — Explicit Geometry Only Where Semantically Meaningful
+
+**Status:** Closed
+**Source:** Principles Worth Harvesting
+**Decided:** The spec contains explicit geometric constraints only when position or dimension
+carries semantic meaning (e.g., a floor plan where room adjacency is a semantic claim). In
+all other cases, geometry is fully derived by the Layout Engine.
+**Rationale:** Putting arbitrary geometry in the spec conflates structure and style and makes
+the spec brittle to render context changes.
+**Depends on:** D-014.
+**Blocks:** Q-003 (spatial constraint representation).
+
+---
+
+## D-024 — Frame-Shifting Changes Require Explicit Flagging
+
+**Status:** Closed
+**Source:** Design doc
+**Decided:** A change that requires switching the genre (e.g., from hierarchy to network)
+is a frame-shifting change and requires explicit confirmation, not just a DIFF apply.
+Non-frame-shifting changes can be applied with the normal DIFF confirmation flow.
+**Rationale:** Genre changes invalidate all downstream policy and layout work. Treating them
+as ordinary DIFFs would silently discard significant computation.
+**Depends on:** D-008, D-017.
+**Blocks:** Q-002, Q-012.
 
 ---
 
 ## D-025 — Greenfield Implementation; Principles Harvested from Prior Work
 
-**Status:** Closed  
-**Source:** Principles Worth Harvesting  
-**Decided:** Principles imported from MathOps and chart-theme prior work: unit invariance, math as
-first-class, style/structure separation, explicit geometry only where semantically meaningful.
-Implementation is greenfield — not constrained by prior schemas.  
-**Rationale:** Prior work solved related problems but not this one. Carrying forward implementation
-would add constraints without adding value.  
-**Depends on:** D-001.  
+**Status:** Closed
+**Source:** Principles Worth Harvesting
+**Decided:** Implementation is greenfield. Principles imported from prior work: unit invariance,
+math as first-class, style/structure separation, explicit geometry only where semantically
+meaningful. Prior schemas are not carried forward.
+**Rationale:** Prior work solved related problems but not this one.
+**Depends on:** D-001.
 **Blocks:** Nothing directly; informs all implementation choices.
-
----
 
 ---
 
 ## D-026 — Spec / State Architectural Separation
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The working spec and the runtime state are formally distinct objects.
-The spec is semantic, versioned, authored, and exportable. State is the runtime
-envelope containing the spec plus all derived artifacts (resolved layouts, full audit
-record, pipeline execution data). Blocks write to state; only confirmed DIFFs write
-to the spec. This is the membrane between authored content and derived content.  
-**Rationale:** Conflating spec and state was identified as a load-bearing architectural
-error during block interface analysis. The spec/state split makes the versioning model,
-rollback semantics, and export/embed model coherent.  
-**Depends on:** D-004.  
-**Blocks:** All slot-level decisions (D-027 through D-032); Q-002, Q-003.
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The working spec and the runtime state are formally distinct objects. The spec
+is semantic, versioned, authored, and exportable. State is the runtime envelope containing
+the spec plus all derived artifacts (resolved layouts, full audit record, pipeline execution
+data). Blocks write to state; only confirmed DIFFs write to the spec.
+**Rationale:** Conflating spec and state was identified as a load-bearing architectural error
+during block interface analysis.
+**Depends on:** D-004.
+**Blocks:** All slot-level decisions (D-027 through D-037); Q-002, Q-003.
 
 ---
 
 ## D-027 — Six-Slot Spec Structure
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The spec has six slots with distinct write permissions, re-evaluation
-triggers, and semantic scope:
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The spec has six slots with distinct write permissions, re-evaluation triggers,
+and semantic scope:
 1. Semantic Intent (Data Section + Intent Section) — LLM/human only
 2. Genre Commitment — GR proposes, LLM/human confirms
 3. Policy (including Autonomy Charter) — GR proposes, LE may propose, LLM/human may override
 4. Presentation Preferences & Policy Overrides — LLM/human only
 5. Render Context Set — LLM/human only
 6. Audit Summary — Audit block only, system DIFF, terminal
-
-**Rationale:** Each slot has a distinct author and a distinct downstream role.
-Separating them prevents scope creep, makes write permissions enforceable, and
-gives the version history semantic meaning (which slot changed → what re-runs).  
-**Depends on:** D-026.  
-**Blocks:** Q-002 (diff vocabulary must address all six slots), Q-003 (spec
-representation must accommodate all six slots with their distinct properties).
+**Rationale:** Each slot has a distinct author and a distinct downstream role. Separating them
+prevents scope creep, makes write permissions enforceable, and gives the version history semantic meaning (which slot changed → what re-runs).
+**Depends on:** D-026.
+**Blocks:** Q-002, Q-003.
 
 ---
 
-## D-028 — Genre Resolver Writes via Confirmed DIFF (SM-2 Resolution)
+## D-028 — Genre Resolver Writes via Confirmed DIFF
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The Genre Resolver does not write directly to the spec. When it wants
-to commit a genre classification or a policy derivation, it proposes a DIFF through
-the normal diff pathway. Genre commitment (Slot 2) requires LLM/human confirmation.
-Policy derivation (Slot 3) is system-confirmed (no human confirmation required) but
-is recorded with Genre Resolver as proposer for provenance.  
-**Rationale:** Maintaining a uniform DIFF model with provenance tagging is cleaner
-than creating a separate write pathway for system blocks. All spec history is
-consistent and auditable.  
-**Depends on:** D-026, D-027.  
-**Blocks:** Q-002 (diff vocabulary must include source-type tagging).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The Genre Resolver does not write directly to the spec. It proposes a DIFF
+through the normal diff pathway. Genre commitment (Slot 2) requires LLM/human confirmation.
+Policy derivation (Slot 3) is system-confirmed but recorded with Genre Resolver as proposer.
+**Rationale:** Maintaining a uniform DIFF model with provenance tagging is cleaner than a
+separate write pathway. All spec history remains consistent and auditable.
+**Depends on:** D-026, D-027.
+**Blocks:** Q-002 (diff vocabulary must include source-type tagging for GR vs. LLM vs. system provenance).
 
 ---
 
 ## D-029 — Audit Summary Belongs in the Spec (Slot 6)
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The audit summary is Slot 6 of the spec, not a separate state artifact.
-It represents the result of the full pipeline loop — what decisions were made, what
-was found, what the LLM needs to know. This is meaningful content, not ephemeral
-computation. The full three-tier finding record remains in State; Slot 6 is a curated
-summary derived from it. Slot 6 DIFFs are system-written and terminal — they do not
-trigger further pipeline re-runs.  
-**Rationale:** Placing the audit summary in the spec ensures it is versioned alongside
-the semantic content that produced it, exportable with the visual, and readable by a
-future LLM session without requiring access to runtime state.  
-**Depends on:** D-026, D-027, D-015.  
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The audit summary is Slot 6 of the spec. The full three-tier finding record
+remains in State; Slot 6 is a curated summary derived from it. Slot 6 DIFFs are
+system-written and terminal — they do not trigger further pipeline re-runs.
+**Rationale:** Placing the audit summary in the spec ensures it is versioned alongside the
+semantic content that produced it and readable by a future LLM session without requiring access to runtime state. Slot 6 DIFFs are terminal — they record outcomes, not trigger re-runs.
+**Depends on:** D-026, D-027, D-015.
 **Blocks:** Audit block interface; Q-006.
 
 ---
 
 ## D-030 — Autonomy Charter in Slot 3 Policy
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** Each genre's policy (Slot 3) includes an Autonomy Charter — a table
-specifying what the Layout Engine and Renderer may do autonomously vs. what requires
-approval. Four categories: Autonomous (no reporting), Auto-DIFF (system commits,
-Tier 3 finding), Proposed-DIFF (LLM/human confirms, Tier 2 finding),
-Never-autonomous (Tier 1 finding if situation arises, explicit request required).
-The genre definition provides the default charter. LLM/human can tighten but not
-loosen the Never-autonomous category.  
-**Rationale:** Without explicit autonomy governance, the pipeline either asks too
-many questions (breaking usability) or makes changes silently (violating D-005).
-The Autonomy Charter makes the boundary explicit, genre-appropriate, and auditable.
-It also connects the autonomy level directly to the finding tier structure (D-015).  
-**Depends on:** D-005, D-015, D-027.  
-**Blocks:** Per-genre definition work; Q-008 (layout algorithms must declare their
-autonomy behavior).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** Each genre's policy (Slot 3) includes an Autonomy Charter — a table specifying
+what the Layout Engine and Renderer may do autonomously vs. what requires approval. Four
+categories: Autonomous (no reporting), Auto-DIFF (system commits, Tier 3 finding),
+Proposed-DIFF (LLM/human confirms, Tier 2 finding), Never-autonomous (Tier 1 finding if
+situation arises). The genre definition provides the default charter. LLM/human can tighten
+but not loosen the Never-autonomous category.
+**Rationale:** Without explicit autonomy governance, the pipeline either asks too many questions
+or makes changes silently. The Autonomy Charter connects autonomy level directly to the finding
+tier structure.
+**Depends on:** D-005, D-015, D-027.
+**Blocks:** Per-genre definition work; Q-008.
 
 ---
 
-## D-031 — v1 Versioning: Linear History with Rollback; Branching Deferred
+## D-031 — v1 Versioning: Linear History with Rollback
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** v1 uses a linear DIFF chain with a current-version pointer. Rollback
-moves the pointer to any prior version. A rollback followed by a new DIFF orphans
-the previously-current versions (they remain in the chain but are no longer on the
-path to current). Branching — maintaining multiple live chains simultaneously — is
-deferred to v2. The Variation Generator covers the primary "explore alternatives"
-use case without requiring true branching.  
-**Rationale:** Branching adds significant State complexity (which branch is active?
-when are branches evicted?) for limited v1 benefit. Linear rollback is sufficient
-for the "things went wrong, go back to a known-good state" use case.  
-**Depends on:** D-026.  
-**Blocks:** State structure (no branch management needed in v1 State).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** v1 uses a linear version history. Each confirmed DIFF creates a new version.
+Rollback to any prior version is supported. Branching is deferred to v2.
+**Rationale:** Branching adds significant State complexity. The Variation Generator handles
+the "show alternatives" use case without requiring spec-level branching.
+**Depends on:** D-026.
+**Blocks:** Nothing directly; constrains State structure.
 
 ---
 
-## D-032 — Slot 1 Data Section: Structured Data Separate from Semantic Intent
+## D-032 — Data Section in Slot 1
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** Slot 1 is divided into a Data Section (raw structured data: tables,
-time series, hierarchical trees) and an Intent Section (entity/relation set, analytical
-directives, rhetorical purpose, compositional structure). Data is raw material;
-intent is what the visual should express about that data. Entities in the Intent
-Section reference datasets by ID. For v1, data is static (uploaded/provided by
-user or LLM); analytical computation by the pipeline (fitting regressions, generating
-forecasts) is deferred to v2.  
-**Rationale:** Conflating bulk structured data with semantic intent makes the
-entity/relation set unwieldy and obscures the actual analytical request. Separating
-them also makes versioning cleaner: updating a dataset is a different operation from
-revising the analytical intent.  
-**Depends on:** D-027.  
-**Blocks:** Spec schema design (Q-003 must accommodate two-section Slot 1).
+**Status:** Closed
+**Source:** Q-001 session (feedback)
+**Decided:** Slot 1 (Semantic Intent) is subdivided into a Data Section and an Intent Section.
+The Data Section holds bulk structured data (tables, series, hierarchical trees) inline or
+by reference. The Intent Section holds the semantic description (entity set, relation set,
+analytical directives, rhetorical purpose, compositional structure). Data is referenced from
+intent by dataset/column identifiers.
+**Rationale:** Bulk data is not semantic intent. Separating them keeps the intent readable and
+diffable without embedding large data payloads in semantic fields.
+**Depends on:** D-027.
+**Blocks:** Q-003 (data content types must be specified).
 
 ---
 
-## D-033 — Slot 3/4 Operational Boundary: Policy vs. Preferences
+## D-033 — Slot 3 / Slot 4 Boundary: Policy vs. Style
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The operational definition:
-- **Policy (Slot 3)** = what the Genre Resolver proposes. Genre-derived parameters
-  with defaults; overridable by LLM/human or LE proposals.
-- **Presentation Preferences & Policy Overrides (Slot 4)** = what the LLM/human
-  expresses that the Genre Resolver would not propose.
-- **Style (theme, outside spec)** = what the Genre Resolver never proposes.
-  Colors, fonts, line weights, decorative elements.
-
-This boundary will sharpen as actual genres are defined. The catch-all in Slot 4 has
-explicit exclusion rules: cannot contain theme content; cannot contain GR-proposed
-parameters (those go in Slot 3); cannot contain semantic intent (that goes in Slot 1).  
-**Rationale:** A functional definition of the boundary is more durable than a
-content-based definition, since the content varies by genre.  
-**Depends on:** D-027, D-018.  
-**Blocks:** Per-genre definition (genre definitions will make the boundary concrete).
+**Status:** Closed
+**Source:** Q-001 session (feedback)
+**Decided:** Slot 3 (Policy) contains what the Genre Resolver proposes. Slot 4 (Presentation
+Preferences & Policy Overrides) contains what the Genre Resolver never proposes but LLM/human
+may set. This is an operational definition: if the GR would produce it from genre reasoning,
+it belongs in Slot 3; if it is purely a human/LLM preference that GR has no opinion on,
+it belongs in Slot 4.
+**Rationale:** A clean operational definition avoids case-by-case debates about which slot
+owns a given parameter.
+**Depends on:** D-027.
+**Blocks:** Genre definition work; Slot 3 schema.
 
 ---
 
-## D-034 — Audit Block Uses Interceptor Model (AR-1 Resolution)
+## D-034 — Variation Generator Tap Points
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The Audit block receives full block I/O via a shared observability
-interceptor layer, not via explicit emission from each block. Blocks do not need
-to know they are being audited. The interceptor captures all block inputs and outputs
-and makes them available to the Audit block. This is infrastructure separate from
-the finding emission API.  
-**Rationale:** Explicit I/O emission from each block would couple every block to
-the audit infrastructure and add overhead to all block implementations. An interceptor
-keeps blocks clean and allows the Audit block to decide what to retain.  
-**Depends on:** D-003, D-015.  
-**Blocks:** Q-013 (finding emission API is separate from the interceptor).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The Variation Generator has two tap points: pre-Layout Engine (structural
+variations — different spec/genre combinations) and post-Layout Engine (aesthetic variations —
+same structure, different layout/style realizations).
+**Rationale:** The two tap points serve different use cases. Pre-LE variations explore
+structural alternatives; post-LE variations explore aesthetic alternatives within a fixed
+structure.
+**Depends on:** D-018.
+**Blocks:** VG interface specification.
 
 ---
 
-## D-035 — Variation Generator: Two Tap Points; Genre Variations Out of Scope
+## D-035 — Audit Block Uses Interceptor / Observability Model
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The Variation Generator has two tap points:
-1. Pre-Layout Engine (after Genre Resolver): structural variations within the
-   committed genre. Variants run through the full remaining pipeline.
-2. Post-Layout Engine (before Renderer): aesthetic/rendering variations. Variants
-   run through the Renderer only — cheaper and appropriate for fine-tuning appearance.
-
-Genre variations (generating the same content under different genres) are out of scope
-for the Variation Generator. Genre exploration belongs in the Genre Resolver /
-Intent Capture negotiation, not in post-genre variation.  
-**Rationale:** Genre variations require running the full pipeline including Genre
-Resolver and produce qualitatively different visuals, not "variations" of a chosen
-visual. Keeping VG within the committed genre makes the variation vocabulary coherent
-and the selection model tractable.  
-**Depends on:** D-023, D-024.  
-**Blocks:** Q-011 (variation axis vocabulary must respect these tap points).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The Audit block receives the full input/output of each pipeline block via an
+interceptor model, not via explicit pass-through in each block's interface. Blocks are not
+responsible for routing their I/O to the Audit block.
+**Rationale:** An interceptor model provides full observability without coupling the Audit
+block into every block's interface design. Blocks remain unaware of the audit mechanism.
+**Depends on:** D-003.
+**Blocks:** Audit block implementation.
 
 ---
 
-## D-036 — Content Measurement Service: Async Parallel Calls
+## D-036 — Content Measurement Service is Async with Caching
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** The Content Measurement Service supports async parallel measurement
-requests, analogous to browser layout threads. The Layout Engine can batch measurement
-requests and receive results asynchronously rather than blocking on each. For complex
-math expressions requiring iterative internal layout, the CMS handles iteration
-internally and presents a single async response to callers.  
-**Rationale:** Layout algorithms need many measurements; sequential blocking calls
-would compound latency unacceptably. Async batching matches established browser
-engine practice for the same problem.  
-**Depends on:** D-014.  
-**Blocks:** Q-010 (CMS interface must specify the async/batch model).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The Content Measurement Service operates asynchronously. Results are cached
+keyed to (content, render-context). Callers do not block the pipeline waiting for
+measurements that are likely already cached.
+**Rationale:** Measurement (especially math typesetting) is expensive. Caching is essential
+for performance. Async operation prevents measurement from becoming a pipeline bottleneck.
+**Depends on:** D-022.
+**Blocks:** Q-010.
 
 ---
 
-## D-037 — Render Context Set Lives in Spec Slot 5 (LE-1/CC-4 Resolution)
+## D-037 — Render Context Set Belongs in Slot 5 of Spec
 
-**Status:** Closed  
-**Source:** Q-001 session  
-**Decided:** Named render contexts (screen, print-a4, low-vision, thumbnail, etc.)
-with their parameters (target format, dimensions, font environment, background/contrast)
-are defined in Spec Slot 5. The spec defines *which* contexts exist and their
-parameters. Resolved layouts in State are keyed to (spec-version-id, context-id).
-Prior layouts for stability are also keyed this way. Environmental parameters are
-not floating loose — they are owned by the spec's render context definitions.  
-**Rationale:** Storing render contexts in the spec makes output reproducible
-(same spec + same context = same output), versionable (adding a render context
-is a Slot 5 DIFF), and exportable (an imported spec includes its render targets).  
-**Depends on:** D-026, D-027, D-019.  
-**Blocks:** Q-010 (CMS needs font env from render context, not from theme).
+**Status:** Closed
+**Source:** Q-001 session
+**Decided:** The set of named render contexts (output targets) is Slot 5 of the spec, authored
+by LLM/human. The CMS receives font environment from the render context, not from a theme.
+**Rationale:** Render contexts are authored intent about where the visual will be used.
+They belong in the spec alongside the other authored slots.
+**Depends on:** D-026, D-027, D-019.
+**Blocks:** Q-010.
 
 ---
 
-*Log updated after Q-001 review session. 37 total decisions recorded.*
+*Log updated after Q-001 session. 37 total decisions recorded (D-001 through D-037). Reconciled from docs and docs2 versions.*
+*Next update: after Q-002/Q-003 session.*
